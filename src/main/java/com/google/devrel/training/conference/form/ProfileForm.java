@@ -14,11 +14,13 @@ public class ProfileForm {
      */
     private TeeShirtSize teeShirtSize;
 
-    private ProfileForm () {}
+    private ProfileForm() {
+    }
 
     /**
      * Constructor for ProfileForm, solely for unit test.
-     * @param displayName A String for displaying the user on this system.
+     *
+     * @param displayName       A String for displaying the user on this system.
      * @param notificationEmail An e-mail address for getting notifications from this system.
      */
     public ProfileForm(String displayName, TeeShirtSize teeShirtSize) {
@@ -33,14 +35,14 @@ public class ProfileForm {
     public TeeShirtSize getTeeShirtSize() {
         return teeShirtSize;
     }
-    
+
     public static enum TeeShirtSize {
-    	NOT_SPECIFIED,
+        NOT_SPECIFIED,
         XS,
         S,
         M,
-        L, 
-        XL, 
+        L,
+        XL,
         XXL,
         XXXL
     }

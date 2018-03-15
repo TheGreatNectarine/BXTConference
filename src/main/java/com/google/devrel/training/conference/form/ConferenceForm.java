@@ -1,7 +1,6 @@
 package com.google.devrel.training.conference.form;
 
 import com.google.common.collect.ImmutableList;
-
 import java.util.Date;
 import java.util.List;
 
@@ -44,10 +43,12 @@ public class ConferenceForm {
      */
     private int maxAttendees;
 
-    private ConferenceForm() {}
+    private ConferenceForm() {
+    }
 
     /**
      * Public constructor is solely for Unit Test.
+     *
      * @param name
      * @param description
      * @param topics

@@ -1,8 +1,5 @@
 package com.google.devrel.training.conference.domain;
 
-import static com.google.devrel.training.conference.service.OfyService.ofy;
-import com.googlecode.objectify.condition.IfNotDefault;
-
 import com.google.api.server.spi.config.AnnotationBoolean;
 import com.google.api.server.spi.config.ApiResourceProperty;
 import com.google.common.base.Preconditions;
@@ -13,10 +10,12 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
-
+import com.googlecode.objectify.condition.IfNotDefault;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static com.google.devrel.training.conference.service.OfyService.ofy;
 
 /**
  * Conference class stores conference information.
@@ -30,7 +29,7 @@ public class Conference {
 
     /**
      * The id for the datastore key.
-     *
+     * <p>
      * We use automatic id assignment for entities of Conference class.
      */
     @Id
@@ -69,7 +68,8 @@ public class Conference {
     /**
      * The name of the city that the conference takes place.
      */
-    @Index(IfNotDefault.class) private String city;
+    @Index(IfNotDefault.class)
+    private String city;
 
     /**
      * The starting date of this conference.
@@ -83,7 +83,7 @@ public class Conference {
 
     /**
      * Indicating the starting month derived from startDate.
-     *
+     * <p>
      * We need this for a composite query specifying the starting month.
      */
     @Index
@@ -104,7 +104,8 @@ public class Conference {
     /**
      * Just making the default constructor private.
      */
-    private Conference() {}
+    private Conference() {
+    }
 
     public Conference(final long id, final String organizerUserId,
                       final ConferenceForm conferenceForm) {
@@ -159,6 +160,7 @@ public class Conference {
 
     /**
      * Returns a defensive copy of topics if not null.
+     *
      * @return a defensive copy of topics if not null.
      */
     public List<String> getTopics() {
@@ -171,6 +173,7 @@ public class Conference {
 
     /**
      * Returns a defensive copy of startDate if not null.
+     *
      * @return a defensive copy of startDate if not null.
      */
     public Date getStartDate() {
@@ -179,6 +182,7 @@ public class Conference {
 
     /**
      * Returns a defensive copy of endDate if not null.
+     *
      * @return a defensive copy of endDate if not null.
      */
     public Date getEndDate() {
@@ -219,37 +223,37 @@ public class Conference {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(this.startDate);
             // Calendar.MONTH is zero based, so adding 1.
-            this.month = calendar.get(calendar.MONTH) + 1;
+            this.month = calendar.get(calendar.MONTH)+1;
         }
         // Check maxAttendees value against the number of already allocated seats.
-        int seatsAllocated = maxAttendees - seatsAvailable;
+        int seatsAllocated = maxAttendees-seatsAvailable;
         if (conferenceForm.getMaxAttendees() < seatsAllocated) {
-            throw new IllegalArgumentException(seatsAllocated + " seats are already allocated, "
-                    + "but you tried to set maxAttendees to " + conferenceForm.getMaxAttendees());
+            throw new IllegalArgumentException(seatsAllocated+" seats are already allocated, "
+                    +"but you tried to set maxAttendees to "+conferenceForm.getMaxAttendees());
         }
         // The initial number of seatsAvailable is the same as maxAttendees.
         // However, if there are already some seats allocated, we should subtract that numbers.
         this.maxAttendees = conferenceForm.getMaxAttendees();
-        this.seatsAvailable = this.maxAttendees - seatsAllocated;
+        this.seatsAvailable = this.maxAttendees-seatsAllocated;
     }
 
     public void bookSeats(final int number) {
         if (seatsAvailable < number) {
             throw new IllegalArgumentException("There are no seats available.");
         }
-        seatsAvailable = seatsAvailable - number;
+        seatsAvailable = seatsAvailable-number;
     }
 
     public void giveBackSeats(final int number) {
-        if (seatsAvailable + number > maxAttendees) {
+        if (seatsAvailable+number > maxAttendees) {
             throw new IllegalArgumentException("The number of seats will exceeds the capacity.");
         }
-        seatsAvailable = seatsAvailable + number;
+        seatsAvailable = seatsAvailable+number;
     }
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("Id: " + id + "\n")
+        StringBuilder stringBuilder = new StringBuilder("Id: "+id+"\n")
                 .append("Name: ").append(name).append("\n");
         if (city != null) {
             stringBuilder.append("City: ").append(city).append("\n");

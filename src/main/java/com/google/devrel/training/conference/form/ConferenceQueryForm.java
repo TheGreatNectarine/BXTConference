@@ -1,17 +1,15 @@
 package com.google.devrel.training.conference.form;
 
-import static com.google.devrel.training.conference.service.OfyService.ofy;
-
 import com.google.api.server.spi.config.AnnotationBoolean;
 import com.google.api.server.spi.config.ApiResourceProperty;
 import com.google.common.collect.ImmutableList;
 import com.google.devrel.training.conference.domain.Conference;
-
 import com.googlecode.objectify.cmd.Query;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static com.google.devrel.training.conference.service.OfyService.ofy;
 
 /**
  * A simple Java object (POJO) representing a query options for Conference.
@@ -81,11 +79,12 @@ public class ConferenceQueryForm {
      * A class representing a single filter for the query.
      */
     public static class Filter {
-        private Field field;
+        private Field    field;
         private Operator operator;
-        private String value;
+        private String   value;
 
-        public Filter () {}
+        public Filter() {
+        }
 
         public Filter(Field field, Operator operator, String value) {
             this.field = field;
@@ -117,7 +116,8 @@ public class ConferenceQueryForm {
     @ApiResourceProperty(ignored = AnnotationBoolean.TRUE)
     private Filter inequalityFilter;
 
-    public ConferenceQueryForm() {}
+    public ConferenceQueryForm() {
+    }
 
     /**
      * Checks the feasibility of the whole query.

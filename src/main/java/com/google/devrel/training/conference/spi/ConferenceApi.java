@@ -1,12 +1,11 @@
 package com.google.devrel.training.conference.spi;
 
-import static com.google.devrel.training.conference.service.OfyService.*;
-
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiMethod.HttpMethod;
 import com.google.api.server.spi.response.ConflictException;
 import com.google.api.server.spi.response.ForbiddenException;
+import com.google.api.server.spi.response.NotFoundException;
 import com.google.api.server.spi.response.UnauthorizedException;
 import com.google.appengine.api.users.User;
 import com.google.devrel.training.conference.Constants;
@@ -18,22 +17,20 @@ import com.google.devrel.training.conference.form.ProfileForm;
 import com.google.devrel.training.conference.form.ProfileForm.TeeShirtSize;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-
+import com.googlecode.objectify.cmd.Query;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.googlecode.objectify.cmd.Query;
-
 import javax.inject.Named;
 
-import com.google.api.server.spi.response.NotFoundException;
+import static com.google.devrel.training.conference.service.OfyService.factory;
+import static com.google.devrel.training.conference.service.OfyService.ofy;
 
 /**
  * Defines conference APIs.
  */
-@Api(name = "conference", version = "v1", scopes = { Constants.EMAIL_SCOPE }, clientIds = {
-        Constants.WEB_CLIENT_ID, Constants.API_EXPLORER_CLIENT_ID }, description = "API for the Conference Central Backend application.")
+@Api(name = "conference", version = "v1", scopes = {Constants.EMAIL_SCOPE}, clientIds = {
+        Constants.WEB_CLIENT_ID, Constants.API_EXPLORER_CLIENT_ID}, description = "API for the Conference Central Backend application.")
 public class ConferenceApi {
 
     /*
@@ -48,13 +45,10 @@ public class ConferenceApi {
      * Creates or updates a Profile object associated with the given user
      * object.
      *
-     * @param user
-     *            A User object injected by the cloud endpoints.
-     * @param profileForm
-     *            A ProfileForm object sent from the client form.
+     * @param user        A User object injected by the cloud endpoints.
+     * @param profileForm A ProfileForm object sent from the client form.
      * @return Profile object just created.
-     * @throws UnauthorizedException
-     *             when the User object is null.
+     * @throws UnauthorizedException when the User object is null.
      */
 
     // Declare this method as a method available externally through Endpoints
@@ -66,9 +60,9 @@ public class ConferenceApi {
     // TODO 2 Pass the User parameter
     public Profile saveProfile(User user, ProfileForm profileForm) throws UnauthorizedException {
 
-        String userId = null;
-        String mainEmail = null;
-        String displayName = "Your Name Here";
+        String       userId       = null;
+        String       mainEmail    = null;
+        String       displayName  = "Your Name Here";
         TeeShirtSize teeShirtSize = TeeShirtSize.NOT_SPECIFIED;
 
         // TODO 2
@@ -78,48 +72,47 @@ public class ConferenceApi {
         // Set the teeShirtSize to the value sent by the ProfileForm, if sent
         // otherwise leave it as the default value
         TeeShirtSize tempTeeShirtSize = profileForm.getTeeShirtSize();
-       
-        if (tempTeeShirtSize!=null) 
-        	teeShirtSize = tempTeeShirtSize;
+
+        if (tempTeeShirtSize != null)
+            teeShirtSize = tempTeeShirtSize;
 
         // TODO 1
         // Set the displayName to the value sent by the ProfileForm, if sent
         // otherwise set it to null
-       
-        
+
+
         String tempDisplayName = profileForm.getDisplayName();
-        if (tempDisplayName!=null)
+        if (tempDisplayName != null)
             displayName = tempDisplayName;
         else {
-        	displayName = null;
+            displayName = null;
         }
-        
-        
+
+
         // TODO 2
         // Get the userId and mainEmail
-       
+
         userId = user.getUserId();
         mainEmail = user.getEmail();
-        
+
         // TODO 2
         // If the displayName is null, set it to default value based on the user's email
         // by calling extractDefaultDisplayNameFromEmail(...)
         String def = "";
-        def =extractDefaultDisplayNameFromEmail(mainEmail);
-          if (displayName == null){
-        	displayName = def;
-          }
+        def = extractDefaultDisplayNameFromEmail(mainEmail);
+        if (displayName == null) {
+            displayName = def;
+        }
         // Create a new Profile entity from the
         // userId, displayName, mainEmail and teeShirtSize
-          Profile profile = getProfile(user);
-   
-          if (profile==null){
-        	  profile = new Profile(userId, displayName, mainEmail, teeShirtSize);
-          }
-          else{
-        	  if (!(displayName.equals(def)))
-        	  profile.update(displayName, teeShirtSize);
-          }
+        Profile profile = getProfile(user);
+
+        if (profile == null) {
+            profile = new Profile(userId, displayName, mainEmail, teeShirtSize);
+        } else {
+            if (!(displayName.equals(def)))
+                profile.update(displayName, teeShirtSize);
+        }
         // TODO 3 (In Lesson 3)
         // Save the Profile entity in the datastore
         ofy().save().entity(profile).now();
@@ -131,11 +124,9 @@ public class ConferenceApi {
      * Returns a Profile object associated with the given user object. The cloud
      * endpoints system automatically inject the User object.
      *
-     * @param user
-     *            A User object injected by the cloud endpoints.
+     * @param user A User object injected by the cloud endpoints.
      * @return Profile object.
-     * @throws UnauthorizedException
-     *             when the User object is null.
+     * @throws UnauthorizedException when the User object is null.
      */
     @ApiMethod(name = "getProfile", path = "profile", httpMethod = HttpMethod.GET)
     public Profile getProfile(final User user) throws UnauthorizedException {
@@ -145,63 +136,65 @@ public class ConferenceApi {
 
         // TODO
         // load the Profile Entity
-        String userId = user.getUserId(); // TODO
-        Key key = Key.create(Profile.class, userId); // TODO
-        Profile profile = (Profile)ofy().load().key(key).now(); // TODO load the Profile entity
+        String  userId  = user.getUserId(); // TODO
+        Key     key     = Key.create(Profile.class, userId); // TODO
+        Profile profile = (Profile) ofy().load().key(key).now(); // TODO load the Profile entity
         return profile;
     }
-    
+
     @ApiMethod(
             name = "queryConferences",
             path = "queryConferences",
             httpMethod = HttpMethod.POST
     )
-    public List<Conference> queryConferences(ConferenceQueryForm conferenceQueryForm) { 
-    	Iterable<Conference> conferenceIterable = conferenceQueryForm.getQuery(); 
-    	List<Conference> result = new ArrayList<>(0); 
-    	List<Key<Profile>> organizersKeyList = new ArrayList<>(0); 
-    	for (Conference conference : conferenceIterable) { 
-    	organizersKeyList.add(Key.create(Profile.class, conference.getOrganizerUserId())); 
-    	result.add(conference); 
-    	} 
-    	// To avoid separate datastore gets for each Conference, pre-fetch the Profiles. 
-    	ofy().load().keys(organizersKeyList); 
-    	return result; 
-    	}
+    public List<Conference> queryConferences(ConferenceQueryForm conferenceQueryForm) {
+        Iterable<Conference> conferenceIterable = conferenceQueryForm.getQuery();
+        List<Conference>     result             = new ArrayList<>(0);
+        List<Key<Profile>>   organizersKeyList  = new ArrayList<>(0);
+        for (Conference conference : conferenceIterable) {
+            organizersKeyList.add(Key.create(Profile.class, conference.getOrganizerUserId()));
+            result.add(conference);
+        }
+        // To avoid separate datastore gets for each Conference, pre-fetch the Profiles.
+        ofy().load().keys(organizersKeyList);
+        return result;
+    }
 
     @ApiMethod(
-    	    name = "getConferencesCreated",
-    	    path = "getConferencesCreated",
-    	    httpMethod = HttpMethod.POST
+            name = "getConferencesCreated",
+            path = "getConferencesCreated",
+            httpMethod = HttpMethod.POST
     )
     public List<Conference> getConferencesCreated(final User user) throws UnauthorizedException {
-    	
-    	if (user == null) {
+
+        if (user == null) {
             throw new UnauthorizedException("Authorization required");
-    	}
-    	Key<Profile> profileKey = Key.create(Profile.class, user.getUserId());
-    	Query<Conference> query = ofy().load().type(Conference.class).ancestor(profileKey);
-    	return query.list();
-       
+        }
+        Key<Profile>      profileKey = Key.create(Profile.class, user.getUserId());
+        Query<Conference> query      = ofy().load().type(Conference.class).ancestor(profileKey);
+        return query.list();
+
     }
+
     @ApiMethod(
             name = "getConferencesFiltered",
             path = "getConferencesFiltered",
             httpMethod = HttpMethod.POST
     )
-    public List<Conference> getConferencesFiltered(){
-                
-    	Query<Conference> query = ofy().load().type(Conference.class);
-    	query = query.filter("maxAttendees >",10);
-    	query = query.filter("city =", "London");
-    	query = query.filter("topics =", "Web Technologies");
-    	query = query.filter("month =", 1) .order("maxAttendees").order("name");
-    	return query.list();   
+    public List<Conference> getConferencesFiltered() {
+
+        Query<Conference> query = ofy().load().type(Conference.class);
+        query = query.filter("maxAttendees >", 10);
+        query = query.filter("city =", "London");
+        query = query.filter("topics =", "Web Technologies");
+        query = query.filter("month =", 1).order("maxAttendees").order("name");
+        return query.list();
     }
 
     /**
      * Gets the Profile entity for the current user
      * or creates it if it doesn't exist
+     *
      * @param user
      * @return user's Profile
      */
@@ -219,17 +212,17 @@ public class ConferenceApi {
         return profile;
     }
 
-/**
+    /**
      * Creates a new Conference object and stores it to the datastore.
      *
-     * @param user A user who invokes this method, null when the user is not signed in.
+     * @param user           A user who invokes this method, null when the user is not signed in.
      * @param conferenceForm A ConferenceForm object representing user's inputs.
      * @return A newly created Conference Object.
      * @throws UnauthorizedException when the user is not signed in.
      */
     @ApiMethod(name = "createConference", path = "conference", httpMethod = HttpMethod.POST)
     public Conference createConference(final User user, final ConferenceForm conferenceForm)
-        throws UnauthorizedException {
+            throws UnauthorizedException {
         if (user == null) {
             throw new UnauthorizedException("Authorization required");
         }
@@ -265,11 +258,10 @@ public class ConferenceApi {
         // Save Conference and Profile Entities
         ofy().save().entities(conference, profile).now();
 
-         return conference;
-         }
-    
-         
-    
+        return conference;
+    }
+
+
     /**
      * Returns a Conference object with the given conferenceId.
      *
@@ -286,15 +278,15 @@ public class ConferenceApi {
             @Named("websafeConferenceKey") final String websafeConferenceKey)
             throws NotFoundException {
         Key<Conference> conferenceKey = Key.create(websafeConferenceKey);
-        Conference conference = ofy().load().key(conferenceKey).now();
+        Conference      conference    = ofy().load().key(conferenceKey).now();
         if (conference == null) {
-            throw new NotFoundException("No Conference found with key: " + websafeConferenceKey);
+            throw new NotFoundException("No Conference found with key: "+websafeConferenceKey);
         }
         return conference;
     }
 
 
- /**
+    /**
      * Just a wrapper for Boolean.
      * We need this wrapped Boolean because endpoints functions must return
      * an object instance, they can't return a Type class such as
@@ -303,7 +295,7 @@ public class ConferenceApi {
     public static class WrappedBoolean {
 
         private final Boolean result;
-        private final String reason;
+        private final String  reason;
 
         public WrappedBoolean(Boolean result) {
             this.result = result;
@@ -327,11 +319,11 @@ public class ConferenceApi {
     /**
      * Register to attend the specified Conference.
      *
-     * @param user An user who invokes this method, null when the user is not signed in.
+     * @param user                 An user who invokes this method, null when the user is not signed in.
      * @param websafeConferenceKey The String representation of the Conference Key.
      * @return Boolean true when success, otherwise false
      * @throws UnauthorizedException when the user is not signed in.
-     * @throws NotFoundException when there is no Conference with the given conferenceId.
+     * @throws NotFoundException     when there is no Conference with the given conferenceId.
      */
     @ApiMethod(
             name = "registerForConference",
@@ -370,7 +362,7 @@ public class ConferenceApi {
                     if (conference == null) {
                         return new WrappedBoolean(false,
                                 "No Conference found with key: "
-                                        + websafeConferenceKey);
+                                        +websafeConferenceKey);
                     }
 
                     // TODO
@@ -448,11 +440,11 @@ public class ConferenceApi {
             @Override
             public WrappedBoolean run() {
                 Key<Conference> conferenceKey = Key.create(websafeConferenceKey);
-                Conference conference = ofy().load().key(conferenceKey).now();
+                Conference      conference    = ofy().load().key(conferenceKey).now();
                 // 404 when there is no Conference with the given conferenceId.
                 if (conference == null) {
-                    return new  WrappedBoolean(false,
-                            "No Conference found with key: " + websafeConferenceKey);
+                    return new WrappedBoolean(false,
+                            "No Conference found with key: "+websafeConferenceKey);
                 }
 
                 // Unregistering from the Conference.
@@ -470,9 +462,8 @@ public class ConferenceApi {
         // if result is false
         if (!result.getResult()) {
             if (result.getReason().contains("No Conference found with key")) {
-                throw new NotFoundException (result.getReason());
-            }
-            else {
+                throw new NotFoundException(result.getReason());
+            } else {
                 throw new ForbiddenException(result.getReason());
             }
         }
@@ -481,7 +472,7 @@ public class ConferenceApi {
 
     }
 
- /**
+    /**
      * Returns a collection of Conference Object that the user is going to attend.
      *
      * @param user An user who invokes this method, null when the user is not signed in.
@@ -520,14 +511,14 @@ public class ConferenceApi {
         }
         return ofy().load().keys(keysToAttend).values(); // change this
     }
-    
+
     public List<Conference> filterPlayground() {
         Query<Conference> query = ofy().load().type(Conference.class).order("name");
 
         // Filter on city
         query = query.filter("city =", "London");
 
-        
+
         // Add a filter for topic = "Medical Innovations"
         query = query.filter("topics =", "Medical Innovations");
 
@@ -541,12 +532,12 @@ public class ConferenceApi {
 
         // multiple sort orders
         query = query.filter("city =", "Tokyo").filter("seatsAvailable <", 10).
-                filter("seatsAvailable >" , 0).order("seatsAvailable").order("name").
+                filter("seatsAvailable >", 0).order("seatsAvailable").order("name").
                 order("month");
-        
+
 
         return query.list();
     }
-    
 
-  }
+
+}
