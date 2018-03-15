@@ -44,12 +44,10 @@ public class ConferenceForm {
      */
     private int maxAttendees;
 
-    private ConferenceForm() {
-    }
+    private ConferenceForm() {}
 
     /**
      * Public constructor is solely for Unit Test.
-     *
      * @param name
      * @param description
      * @param topics

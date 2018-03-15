@@ -81,12 +81,11 @@ public class ConferenceQueryForm {
      * A class representing a single filter for the query.
      */
     public static class Filter {
-        private Field    field;
+        private Field field;
         private Operator operator;
-        private String   value;
+        private String value;
 
-        public Filter() {
-        }
+        public Filter () {}
 
         public Filter(Field field, Operator operator, String value) {
             this.field = field;
@@ -118,8 +117,7 @@ public class ConferenceQueryForm {
     @ApiResourceProperty(ignored = AnnotationBoolean.TRUE)
     private Filter inequalityFilter;
 
-    public ConferenceQueryForm() {
-    }
+    public ConferenceQueryForm() {}
 
     /**
      * Checks the feasibility of the whole query.

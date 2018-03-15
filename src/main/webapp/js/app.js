@@ -86,7 +86,7 @@ app.constant('HTTP_ERRORS', {
  */
 app.factory('oauth2Provider', function ($modal) {
     var oauth2Provider = {
-        CLIENT_ID: 'replace with your client id',
+        CLIENT_ID: '802395732029-oqv1h5972fpjpqeivdvf889l1pr6v93v.apps.googleusercontent.com',
         SCOPES: 'https://www.googleapis.com/auth/userinfo.email profile',
         signedIn: false
     };
@@ -95,7 +95,8 @@ app.factory('oauth2Provider', function ($modal) {
      * Calls the OAuth2 authentication method.
      */
     oauth2Provider.signIn = function (callback) {
-        gapi.auth.signIn({
+        gapi.auth.signIn(
+            {
             'clientid': oauth2Provider.CLIENT_ID,
             'cookiepolicy': 'single_host_origin',
             'accesstype': 'online',
